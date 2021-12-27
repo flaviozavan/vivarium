@@ -296,7 +296,7 @@ static void viv_render_xdg_view(struct wlr_renderer *renderer, struct viv_view *
     bool is_active = is_grabbed || is_active_on_current_output;
     if (view->workspace->fullscreen_view == view) {
         render_fullscreen_fill(view, output, damage);
-    } else if ((view->is_floating || !view->workspace->active_layout->no_borders)) {
+    } else if (!view->fills_output && (view->is_floating || !view->workspace->active_layout->no_borders)) {
         render_borders(view, output, damage, is_active);
     }
 

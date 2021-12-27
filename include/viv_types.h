@@ -260,6 +260,8 @@ struct viv_view {
 
     bool is_static;  /// true for e.g. X11 right click menus, signals that no borders should be drawn
                      /// and resizing/moving is not allowed
+
+    bool fills_output;
 };
 
 struct viv_workspace {

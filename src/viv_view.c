@@ -289,11 +289,21 @@ void viv_view_set_target_box(struct viv_view *view, uint32_t x, uint32_t y, uint
 
     int ox = output_layout_output->x;
     int oy = output_layout_output->y;
-    if (!output->current_workspace->active_layout->ignore_excluded_regions &&
-        !view->is_floating && (view->workspace->fullscreen_view != view)) {
-        ox += output->excluded_margin.left;
-        oy += output->excluded_margin.top;
+
+    uint32_t margin_left = output->excluded_margin.left;
+    uint32_t margin_right = output->excluded_margin.right;
+    uint32_t margin_top = output->excluded_margin.top;
+    uint32_t margin_bottom = output->excluded_margin.bottom;
+    if (output->current_workspace->active_layout->ignore_excluded_regions ||
+        view->is_floating) {
+        margin_left = 0;
+        margin_right = 0;
+        margin_top = 0;
+        margin_bottom = 0;
     }
+
+    ox += margin_left;
+    oy += margin_top;
 
     x += ox;
     y += oy;
@@ -303,8 +313,14 @@ void viv_view_set_target_box(struct viv_view *view, uint32_t x, uint32_t y, uint
     view->target_box.width = width;
     view->target_box.height = height;
 
+    view->fills_output = x == margin_left &&
+        y == margin_top &&
+        width == output->wlr_output->width - margin_left - margin_right &&
+        height == output->wlr_output->height - margin_top - margin_bottom;
+
     int border_width = output->server->config->border_width;
-    if (output->current_workspace->active_layout->no_borders ||
+    if (view->fills_output ||
+        output->current_workspace->active_layout->no_borders ||
         view->is_static) {
         border_width = 0u;
     } else if (view->workspace->fullscreen_view == view) {
