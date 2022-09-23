@@ -239,6 +239,8 @@ void viv_view_init(struct viv_view *view, struct viv_server *server) {
     wl_list_init(&view->workspace_link);
     wl_list_insert(&server->unmapped_views, &view->workspace_link);
     /* wl_list_insert(&output->current_workspace->views, &view->workspace_link); */
+
+    view->foreign_toplevel_handle = wlr_foreign_toplevel_handle_v1_create(server->foreign_toplevel_manager);
 }
 
 void viv_view_destroy(struct viv_view *view) {
@@ -253,6 +255,8 @@ void viv_view_destroy(struct viv_view *view) {
         viv_surface_tree_destroy(view->surface_tree);
         view->surface_tree = NULL;
     }
+
+    wlr_foreign_toplevel_handle_v1_destroy(view->foreign_toplevel_handle);
 
 	free(view);
 }
@@ -368,6 +372,8 @@ bool viv_view_set_fullscreen(struct viv_view *view, bool fullscreen) {
             }
         }
     }
+
+    wlr_foreign_toplevel_handle_v1_set_fullscreen(view->foreign_toplevel_handle, fullscreen);
 
     viv_workspace_mark_for_relayout(view->workspace);
 

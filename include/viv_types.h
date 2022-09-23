@@ -8,6 +8,7 @@
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
+#include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <xkbcommon/xkbcommon.h>
 
 #include "viv_config_support.h"
@@ -95,6 +96,8 @@ struct viv_server {
 
     struct wlr_output_power_manager_v1 *output_power_manager;
     struct wl_listener output_power_manager_set_mode;
+
+    struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
     struct wl_list workspaces;
 
@@ -246,6 +249,7 @@ struct viv_view {
 	struct wl_listener request_fullscreen;
 #ifdef XWAYLAND
 	struct wl_listener request_configure;
+    struct wl_listener set_class;
 #endif
 
 	bool mapped;
@@ -267,6 +271,8 @@ struct viv_view {
 
     bool is_static;  /// true for e.g. X11 right click menus, signals that no borders should be drawn
                      /// and resizing/moving is not allowed
+
+    struct wlr_foreign_toplevel_handle_v1 *foreign_toplevel_handle;
 };
 
 struct viv_workspace {

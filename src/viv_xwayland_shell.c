@@ -279,6 +279,20 @@ static void event_xwayland_surface_destroy(struct wl_listener *listener, void *d
     viv_view_destroy(view);
 }
 
+static void event_xwayland_set_title(struct wl_listener *listener, void *data) {
+    UNUSED(data);
+
+    struct viv_view *view = wl_container_of(listener, view, set_title);
+    wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel_handle, view->xwayland_surface->title);
+}
+
+static void event_xwayland_set_class(struct wl_listener *listener, void *data) {
+    UNUSED(data);
+
+    struct viv_view *view = wl_container_of(listener, view, set_class);
+    wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel_handle, view->xwayland_surface->class);
+}
+
 static void implementation_set_size(struct viv_view *view, uint32_t width, uint32_t height) {
     wlr_xwayland_surface_configure(view->xwayland_surface, view->x, view->y, width, height);
 }
@@ -419,6 +433,10 @@ void viv_xwayland_view_init(struct viv_view *view, struct wlr_xwayland_surface *
     wl_signal_add(&xwayland_surface->events.request_fullscreen, &view->request_fullscreen);
     view->request_configure.notify = event_xwayland_request_configure;
     wl_signal_add(&xwayland_surface->events.request_configure, &view->request_configure);
+    view->set_title.notify = event_xwayland_set_title;
+    wl_signal_add(&xwayland_surface->events.set_title, &view->set_title);
+    view->set_class.notify = event_xwayland_set_class;
+    wl_signal_add(&xwayland_surface->events.set_class, &view->set_class);
 }
 
 void viv_xwayland_lookup_atoms(struct viv_server *server) {

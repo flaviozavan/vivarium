@@ -157,9 +157,11 @@ static void focus_surface(struct viv_seat *seat, struct wlr_surface *surface) {
             return;
         }
 
+        struct viv_view *next_view = NULL;
         if (wlr_surface_is_xdg_surface(surface)) {
             struct wlr_xdg_surface *next = wlr_xdg_surface_from_wlr_surface(surface);
             wlr_xdg_toplevel_set_activated(next, true);
+            next_view = next->data;
 #ifdef XWAYLAND
         } else if (wlr_surface_is_xwayland_surface(surface)) {
             struct wlr_xwayland_surface *next = wlr_xwayland_surface_from_wlr_surface(surface);
@@ -171,7 +173,13 @@ static void focus_surface(struct viv_seat *seat, struct wlr_surface *surface) {
 
             wlr_xwayland_surface_activate(next, true);
             wlr_xwayland_surface_restack(next, NULL, XCB_STACK_MODE_ABOVE);
+            next_view = next->data;
 #endif
+        }
+
+        if (next_view) {
+            wlr_foreign_toplevel_handle_v1_set_activated(next_view->foreign_toplevel_handle, true);
+            wlr_foreign_toplevel_handle_v1_output_enter(next_view->foreign_toplevel_handle, next_view->workspace->output->wlr_output);
         }
     }
 
@@ -182,17 +190,28 @@ static void focus_surface(struct viv_seat *seat, struct wlr_surface *surface) {
 		 * stop displaying a caret.
 		 */
         struct wlr_surface *focused_surface = wlr_seat->keyboard_state.focused_surface;
+        struct viv_view *prev_view = NULL;
         if (wlr_surface_is_xdg_surface(focused_surface)) {
             struct wlr_xdg_surface *previous = wlr_xdg_surface_from_wlr_surface(focused_surface);
             wlr_xdg_toplevel_set_activated(previous, false);
+            prev_view = previous->data;
 #ifdef XWAYLAND
         } else if (wlr_surface_is_xwayland_surface(focused_surface)) {
             struct wlr_xwayland_surface *previous = wlr_xwayland_surface_from_wlr_surface(focused_surface);
             wlr_xwayland_surface_activate(previous, false);
+            prev_view = previous->data;
 #endif
         } else {
             // Not an error as this could be a layer surface
             wlr_log(WLR_DEBUG, "Could not deactivate previous keyboard-focused surface");
+        }
+
+        if (prev_view) {
+            wlr_foreign_toplevel_handle_v1_set_activated(prev_view->foreign_toplevel_handle, false);
+            struct wlr_foreign_toplevel_handle_v1_output *output, *output_tmp;
+            wl_list_for_each_safe(output, output_tmp, &prev_view->foreign_toplevel_handle->outputs, link) {
+                wlr_foreign_toplevel_handle_v1_output_leave(prev_view->foreign_toplevel_handle, output->output);
+            }
         }
 	}
 

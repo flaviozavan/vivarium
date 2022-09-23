@@ -707,6 +707,9 @@ void viv_server_init(struct viv_server *server) {
     // Set up the output manager protocol
     server->xdg_output_manager = wlr_xdg_output_manager_v1_create(server->wl_display, server->output_layout);
 
+    // foreign toplevel handle protocol
+    server->foreign_toplevel_manager = wlr_foreign_toplevel_manager_v1_create(server->wl_display);
+
     // Use a wlroots xcursor manager to handle the cursor theme
 	server->cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
 	wlr_xcursor_manager_load(server->cursor_mgr, 1);
