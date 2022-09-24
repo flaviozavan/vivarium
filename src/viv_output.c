@@ -224,6 +224,10 @@ void viv_output_display_workspace(struct viv_output *output, struct viv_workspac
         return;
     }
 
+    if (output->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL) {
+        viv_workspace_update_all_foreign_toplevels_visibility(output->current_workspace, false);
+    }
+
     if (other_output != NULL) {
         other_output->current_workspace = output->current_workspace;
         other_output->current_workspace->output = other_output;
@@ -235,6 +239,10 @@ void viv_output_display_workspace(struct viv_output *output, struct viv_workspac
     output->current_workspace = workspace;
     output->current_workspace->output = output;
     viv_output_mark_for_relayout(output);
+
+    if (output->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL) {
+        viv_workspace_update_all_foreign_toplevels_visibility(output->current_workspace, true);
+    }
 
     if (workspace->active_view) {
         viv_view_focus(workspace->active_view);

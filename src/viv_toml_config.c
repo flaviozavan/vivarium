@@ -119,6 +119,12 @@ static struct string_map_pair damage_tracking_mode_map[] = {
     NULL_STRING_MAP_PAIR,
 };
 
+static struct string_map_pair foreign_toplevel_include_map[] = {
+    {"active", VIV_FOREIGN_TOPLEVEL_INCLUDE_ACTIVE},
+    {"all", VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL},
+    NULL_STRING_MAP_PAIR,
+};
+
 static bool is_null_string_map_pair(struct string_map_pair *row) {
     return (strlen(row->key) == 0);
 }
@@ -677,6 +683,8 @@ void load_file_as_toml_config(FILE *fp, struct viv_config *config) {
     parse_config_int(root, "global-config", "gap-width", &config->gap_width);
     parse_config_array_fixed_size_float_float(root, "global-config", "clear-colour", 4, config->clear_colour);
     parse_config_bool(root, "global-config", "allow-fullscreen", &config->allow_fullscreen);
+    parse_config_string_map(root, "global-config", "foreign-toplevel-include",
+        foreign_toplevel_include_map, &config->foreign_toplevel_include);
 
     toml_array_t *workspace_names = toml_array_in(global_config, "workspace-names");
     if (toml_array_kind(workspace_names) != 'v') {

@@ -40,6 +40,9 @@ uint32_t viv_workspace_num_tiled_views(struct viv_workspace *workspace);
 /// link will be reused without checking.
 void viv_workspace_add_view(struct viv_workspace *workspace, struct viv_view *view);
 
+// Removes a given view from the workspace
+void viv_workspace_remove_view(struct viv_workspace *workspace, struct viv_view *view);
+
 /// Mark all views in the workspace as damaged
 void viv_workspace_damage_views(struct viv_workspace *workspace);
 
@@ -47,5 +50,11 @@ void viv_workspace_damage_views(struct viv_workspace *workspace);
 /// then, after the next draw, actually applying the new layout
 // TODO: Should we just layout straight away now?
 void viv_workspace_mark_for_relayout(struct viv_workspace *workspace);
+
+// Make all foreign toplevels either enter or leave the output
+void viv_workspace_update_all_foreign_toplevels_visibility(struct viv_workspace *workspace, bool visibility);
+
+// Returns a bool indicating if the workspace is currently visible or not
+bool viv_workspace_is_visible(struct viv_workspace *workspace);
 
 #endif

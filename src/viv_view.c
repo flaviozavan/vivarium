@@ -45,7 +45,7 @@ void viv_view_focus(struct viv_view *view) {
 
 	/* Activate the new surface */
     view->workspace->active_view = view;
-    if (server->active_output->current_workspace == view->workspace) {
+    if (viv_workspace_is_visible(view->workspace)) {
         // Prevent focus from leaving current workspace
         viv_seat_focus_view(viv_server_get_default_seat(server), view);
     }
@@ -87,47 +87,8 @@ void viv_view_shift_to_workspace(struct viv_view *view, struct viv_workspace *wo
     viv_view_get_string_identifier(view, view_name, VIEW_NAME_LEN);
     wlr_log(WLR_DEBUG, "Shifting view %s to workspace with name %s", view_name, workspace->name);
 
-    struct viv_workspace *cur_workspace = view->workspace;
-
-    struct viv_view *next_view = NULL;
-    if (wl_list_length(&cur_workspace->views) > 1) {
-        struct wl_list *next_view_link = view->workspace_link.next;
-        if (next_view_link == &cur_workspace->views) {
-            next_view_link = next_view_link->next;
-        }
-        next_view = wl_container_of(next_view_link, next_view, workspace_link);
-    }
-
-    wl_list_remove(&view->workspace_link);
-    wl_list_insert(&workspace->views, &view->workspace_link);
-
-    if (next_view != NULL) {
-        viv_view_focus(next_view);
-    } else {
-        viv_view_clear_all_focus(view->server);
-    }
-
-    viv_workspace_mark_for_relayout(cur_workspace);
-    viv_workspace_mark_for_relayout(workspace);
-
-    cur_workspace->active_view = next_view;
-    if (workspace->active_view == NULL) {
-        workspace->active_view = view;
-    }
-
-    if (cur_workspace->fullscreen_view == view) {
-      if (workspace->fullscreen_view) {
-          wlr_log(WLR_DEBUG, "Removing fullscreen from %s. New workspace already has a fullscreen view", view_name);
-          viv_view_force_remove_fullscreen(view);
-      } else {
-          workspace->fullscreen_view = view;
-          workspace->active_view = view;
-      }
-
-      cur_workspace->fullscreen_view = NULL;
-    }
-
-    view->workspace = workspace;
+    viv_workspace_remove_view(view->workspace, view);
+    viv_workspace_add_view(workspace, view);
 }
 
 struct viv_view *viv_view_next_in_workspace(struct viv_view *view) {
@@ -226,19 +187,19 @@ void viv_view_init(struct viv_view *view, struct viv_server *server) {
     // Make sure the view gets added to a workspace
     struct viv_output *output = server->active_output;
 
+    struct viv_workspace *workspace;
     if (output) {
-        view->workspace = output->current_workspace;
+        workspace = output->current_workspace;
     } else {
         // No output active (=> no outputs available), so just stick in the first workspace
         struct viv_workspace *workspace = wl_container_of(&server->workspaces.next, workspace, server_link);
-        view->workspace = workspace;
     }
 
+    view->workspace = workspace;
     viv_view_ensure_tiled(view);
 
     wl_list_init(&view->workspace_link);
     wl_list_insert(&server->unmapped_views, &view->workspace_link);
-    /* wl_list_insert(&output->current_workspace->views, &view->workspace_link); */
 
     view->foreign_toplevel_handle = wlr_foreign_toplevel_handle_v1_create(server->foreign_toplevel_manager);
 }

@@ -38,6 +38,10 @@ allow-fullscreen = true
 # Desktop background colour. Note this is overridden by the [background] if set.
 clear-colour = [0.73, 0.73, 0.73, 1.0]
 
+# Determines which views are included in the foreign toplevel output list.
+# Which are commonly displayed as part of a taskbar
+foreign-toplevel-include = "active"
+
 ### BACKGROUND ###
 # The background options are displayed using `swaybg`. Make sure you have this installed
 # if you want to use them.

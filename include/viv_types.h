@@ -37,6 +37,11 @@ enum cursor_buttons {
     VIV_MIDDLE_BUTTON = 274,
 };
 
+enum viv_foreign_toplevel_include {
+    VIV_FOREIGN_TOPLEVEL_INCLUDE_ACTIVE,
+    VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL,
+};
+
 struct viv_output;  // Forward declare for use by viv_server
 struct viv_view;
 
@@ -355,6 +360,8 @@ struct viv_config {
     bool debug_mark_active_output;
     bool debug_mark_frame_draws;
     bool debug_mark_undamaged_regions;
+
+    enum viv_foreign_toplevel_include foreign_toplevel_include;
 };
 
 struct viv_seat {

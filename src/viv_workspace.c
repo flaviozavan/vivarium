@@ -226,12 +226,10 @@ uint32_t viv_workspace_num_tiled_views(struct viv_workspace *workspace) {
 void viv_workspace_add_view(struct viv_workspace *workspace, struct viv_view *view) {
     view->workspace = workspace;
 
-    if (view->is_floating) {
+    if (view->is_floating || !workspace->active_view) {
         wl_list_insert(&workspace->views, &view->workspace_link);
-    } else if (workspace->active_view != NULL) {
-        wl_list_insert(workspace->active_view->workspace_link.prev, &view->workspace_link);
     } else {
-        wl_list_insert(&workspace->views, &view->workspace_link);
+        wl_list_insert(workspace->active_view->workspace_link.prev, &view->workspace_link);
     }
 
     if (view->workspace->fullscreen_view == view) {
@@ -248,4 +246,57 @@ void viv_workspace_add_view(struct viv_workspace *workspace, struct viv_view *vi
     }
 
     viv_workspace_mark_for_relayout(workspace);
+
+    if (workspace->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL &&
+        viv_workspace_is_visible(workspace)) {
+
+        wlr_foreign_toplevel_handle_v1_output_enter(view->foreign_toplevel_handle, workspace->output->wlr_output);
+    }
+}
+
+void viv_workspace_remove_view(struct viv_workspace *workspace, struct viv_view *view) {
+    struct viv_view *next_view = NULL;
+    if (workspace->active_view == view && wl_list_length(&workspace->views) > 1) {
+        struct wl_list *next_view_link = view->workspace_link.next;
+        if (next_view_link == &workspace->views) {
+            next_view_link = next_view_link->next;
+        }
+        next_view = wl_container_of(next_view_link, next_view, workspace_link);
+    }
+
+    bool is_visible = viv_workspace_is_visible(workspace);
+    if (next_view != NULL) {
+        viv_view_focus(next_view);
+    } else {
+        workspace->active_view = NULL;
+        if (is_visible) {
+            viv_view_clear_all_focus(view->server);
+        }
+    }
+
+    wl_list_remove(&view->workspace_link);
+    view->workspace = NULL;
+
+    if (workspace->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL && is_visible) {
+        wlr_foreign_toplevel_handle_v1_output_leave(view->foreign_toplevel_handle, workspace->output->wlr_output);
+    }
+}
+
+void viv_workspace_update_all_foreign_toplevels_visibility(struct viv_workspace *workspace, bool visible) {
+    if (!workspace->output) {
+        return;
+    }
+
+    struct viv_view *view;
+    wl_list_for_each(view, &workspace->views, workspace_link) {
+        if (visible) {
+            wlr_foreign_toplevel_handle_v1_output_enter(view->foreign_toplevel_handle, workspace->output->wlr_output);
+        } else {
+            wlr_foreign_toplevel_handle_v1_output_leave(view->foreign_toplevel_handle, workspace->output->wlr_output);
+        }
+    }
+}
+
+bool viv_workspace_is_visible(struct viv_workspace *workspace) {
+    return workspace->output && workspace->output->current_workspace == workspace;
 }

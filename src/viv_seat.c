@@ -179,7 +179,9 @@ static void focus_surface(struct viv_seat *seat, struct wlr_surface *surface) {
 
         if (next_view) {
             wlr_foreign_toplevel_handle_v1_set_activated(next_view->foreign_toplevel_handle, true);
-            wlr_foreign_toplevel_handle_v1_output_enter(next_view->foreign_toplevel_handle, next_view->workspace->output->wlr_output);
+            if (seat->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ACTIVE) {
+                wlr_foreign_toplevel_handle_v1_output_enter(next_view->foreign_toplevel_handle, next_view->workspace->output->wlr_output);
+            }
         }
     }
 
@@ -208,9 +210,11 @@ static void focus_surface(struct viv_seat *seat, struct wlr_surface *surface) {
 
         if (prev_view) {
             wlr_foreign_toplevel_handle_v1_set_activated(prev_view->foreign_toplevel_handle, false);
-            struct wlr_foreign_toplevel_handle_v1_output *output, *output_tmp;
-            wl_list_for_each_safe(output, output_tmp, &prev_view->foreign_toplevel_handle->outputs, link) {
-                wlr_foreign_toplevel_handle_v1_output_leave(prev_view->foreign_toplevel_handle, output->output);
+            if (seat->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ACTIVE) {
+                struct wlr_foreign_toplevel_handle_v1_output *output, *output_tmp;
+                wl_list_for_each_safe(output, output_tmp, &prev_view->foreign_toplevel_handle->outputs, link) {
+                    wlr_foreign_toplevel_handle_v1_output_leave(prev_view->foreign_toplevel_handle, output->output);
+                }
             }
         }
 	}
