@@ -215,8 +215,13 @@ static void xdg_toplevel_set_title(struct wl_listener *listener, void *data) {
 	struct viv_view *view = wl_container_of(listener, view, set_title);
     const char *title = view->xdg_surface->toplevel->title;
     const char *app_id = view->xdg_surface->toplevel->app_id;
-    wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel_handle, app_id);
-    wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel_handle, title);
+
+    if (app_id) {
+        wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel_handle, app_id);
+    }
+    if (title) {
+        wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel_handle, title);
+    }
     wlr_log(WLR_DEBUG, "\"%s\" set title \"%s\"", app_id, title);
 }
 

@@ -283,14 +283,18 @@ static void event_xwayland_set_title(struct wl_listener *listener, void *data) {
     UNUSED(data);
 
     struct viv_view *view = wl_container_of(listener, view, set_title);
-    wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel_handle, view->xwayland_surface->title);
+    if (view->xwayland_surface->title) {
+        wlr_foreign_toplevel_handle_v1_set_title(view->foreign_toplevel_handle, view->xwayland_surface->title);
+    }
 }
 
 static void event_xwayland_set_class(struct wl_listener *listener, void *data) {
     UNUSED(data);
 
     struct viv_view *view = wl_container_of(listener, view, set_class);
-    wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel_handle, view->xwayland_surface->class);
+    if (view->xwayland_surface->class) {
+        wlr_foreign_toplevel_handle_v1_set_app_id(view->foreign_toplevel_handle, view->xwayland_surface->class);
+    }
 }
 
 static void implementation_set_size(struct viv_view *view, uint32_t width, uint32_t height) {
