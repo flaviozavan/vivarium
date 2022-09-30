@@ -277,6 +277,8 @@ void viv_workspace_remove_view(struct viv_workspace *workspace, struct viv_view 
     wl_list_remove(&view->workspace_link);
     view->workspace = NULL;
 
+    viv_workspace_mark_for_relayout(workspace);
+
     if (workspace->server->config->foreign_toplevel_include == VIV_FOREIGN_TOPLEVEL_INCLUDE_ALL && is_visible) {
         wlr_foreign_toplevel_handle_v1_output_leave(view->foreign_toplevel_handle, workspace->output->wlr_output);
     }
